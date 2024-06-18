@@ -8,6 +8,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.template.loader import render_to_string
 # Create your views here.
 
@@ -23,7 +24,7 @@ def passwordChange_confirmation_email(user,subject, template):
 
 
 
-class UserPasswordChangeView(PasswordChangeView):
+class UserPasswordChangeView(LoginRequiredMixin,PasswordChangeView):
     template_name = 'accounts/password_change_form.html'
     success_url = reverse_lazy('profile')
 
@@ -55,7 +56,7 @@ class UserLoginView(LoginView):
     def get_success_url(self):
         return reverse_lazy('profile')
     
-class UserLogoutView(LogoutView):
+class UserLogoutView(LoginRequiredMixin,LogoutView):
 
     def get_success_url(self):
         if self.request.user.is_authenticated:
@@ -65,7 +66,7 @@ class UserLogoutView(LogoutView):
 
 
 
-class UserBankAccountUpdateView(View):
+class UserBankAccountUpdateView(LoginRequiredMixin,View):
     template_name = 'accounts/profile.html'
 
     def get(self, request):

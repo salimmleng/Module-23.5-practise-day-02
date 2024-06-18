@@ -68,7 +68,7 @@ class TransferMoneyView(LoginRequiredMixin,View):
 
 
 
-class TransactionCreateMixin(CreateView):
+class TransactionCreateMixin(LoginRequiredMixin,CreateView):
     template_name = 'transactions/transaction_form.html'
     model = Transaction
     success_url = reverse_lazy('transaction_report')
