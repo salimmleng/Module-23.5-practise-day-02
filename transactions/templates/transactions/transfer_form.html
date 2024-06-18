@@ -1,0 +1,11 @@
+{% extends 'base.html' %} 
+
+{% load crispy_forms_tags %}
+{% block content %}
+  <h1 class="text-center text-white py-4 font-bold " >Transfer Money</h1>
+  <form method="post" style="width: 50%; height: 500px; margin:auto;" class="pt-4">
+    {% csrf_token %}
+    {{form|crispy}}
+    <button type="submit" class="bg-blue-900 text-white hover:text-blue-900 hover:bg-white border border-blue-900 font-bold px-4 py-2 rounded-lg">Transfer</button>
+</form>
+{% endblock %}
