@@ -25,6 +25,54 @@ from django.db.models import Sum
 from datetime import datetime
 
 
+def send_transfer_email(user, amount,recipient, subject, template):
+    message = render_to_string(template, {
+        'user' : user,
+        'amount' : amount,
+        'recipient': recipient,
+    })
+
+    send_email = EmailMultiAlternatives(subject, '', to=[user.email])
+    send_email.attach_alternative(message, "text/html")
+    send_email.send()
+
+
+
+
+class TransferMoneyView(LoginRequiredMixin,View):
+    form_class = TransferForm
+    template_name = 'transactions/transfer_form.html'
+
+    def get(self,request):
+        form = self.form_class(account = request.user.account)
+        return render(request,self.template_name,{'form': form})
+    
+    def post(self,request):
+        form = self.form_class(request.POST,account = request.user.account)
+        if form.is_valid():
+            recipient,amount = form.save(commit=False)
+            messages.success(request, f'Successfully transferred {"{:,.2f}".format(float(amount))}$ to {recipient.username}')
+
+            # sender email
+            send_transfer_email(request.user, amount,recipient, "Money transferred", "transactions/sender_email.html")
+            
+            # recipient email
+            send_transfer_email(request.user, amount,recipient, "Money received", "transactions/recipient_email.html")
+
+            return redirect('transfer_money')
+        
+
+        return render(request, self.template_name, {'form': form})
+
+
+
+
+
+
+
+
+
+
 
 class TransactionCreateMixin(CreateView):
     template_name = 'transactions/transaction_form.html'
@@ -65,7 +113,7 @@ class DepositMoneyView(TransactionCreateMixin):
                 'balance',
             ]
         )
-
+        
         messages.success(
 
             self.request,
@@ -194,19 +242,3 @@ class LoanListView(LoginRequiredMixin,ListView):
     
 
 
-class TransferMoneyView(LoginRequiredMixin,View):
-    form_class = TransferForm
-    template_name = 'transactions/transfer_form.html'
-
-    def get(self,request):
-        form = self.form_class(account = request.user.account)
-        return render(request,self.template_name,{'form': form})
-    
-    def post(self,request):
-        form = self.form_class(request.POST,account = request.user.account)
-        if form.is_valid():
-            recipient,amount = form.save(commit=False)
-            messages.success(request, f'Successfully transferred {"{:,.2f}".format(float(amount))}$ to {recipient.username}')
-            return redirect('transfer_money')
-
-        return render(request, self.template_name, {'form': form})

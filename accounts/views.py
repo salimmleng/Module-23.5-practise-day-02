@@ -52,6 +52,7 @@ class UserBankAccountUpdateView(View):
         return render(request, self.template_name, {'form': form})
     
 
+
 class UserPasswordChangeView(PasswordChangeView):
     template_name = 'accounts/password_change_form.html'
     success_url = reverse_lazy('profile')
@@ -61,6 +62,8 @@ class UserPasswordChangeView(PasswordChangeView):
         update_session_auth_hash(self.request,form.user)
         messages.success(self.request, 'Your password updated')
         return super().form_valid(form)
+
+
 
 
 
