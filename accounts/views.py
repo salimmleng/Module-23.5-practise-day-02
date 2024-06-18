@@ -8,7 +8,35 @@ from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 # Create your views here.
+
+
+def passwordChange_confirmation_email(user,subject, template):
+    message = render_to_string(template, {
+        'user' : user,
+    })
+
+    send_email = EmailMultiAlternatives(subject, '', to=[user.email])
+    send_email.attach_alternative(message, "text/html")
+    send_email.send()
+
+
+
+class UserPasswordChangeView(PasswordChangeView):
+    template_name = 'accounts/password_change_form.html'
+    success_url = reverse_lazy('profile')
+
+    def form_valid(self,form):
+        form.save()
+        update_session_auth_hash(self.request,form.user)
+        messages.success(self.request, 'Your password updated')
+
+        passwordChange_confirmation_email(self.request.user,"Password confirmation", "accounts/password_change_email.html")
+        return super().form_valid(form)
+
+
+
 
 
 class UserRegistrationView(FormView):
@@ -53,15 +81,6 @@ class UserBankAccountUpdateView(View):
     
 
 
-class UserPasswordChangeView(PasswordChangeView):
-    template_name = 'accounts/password_change_form.html'
-    success_url = reverse_lazy('profile')
-
-    def form_valid(self,form):
-        form.save()
-        update_session_auth_hash(self.request,form.user)
-        messages.success(self.request, 'Your password updated')
-        return super().form_valid(form)
 
 
 

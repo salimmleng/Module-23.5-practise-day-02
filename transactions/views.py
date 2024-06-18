@@ -25,17 +25,16 @@ from django.db.models import Sum
 from datetime import datetime
 
 
-def send_transfer_email(user, amount,recipient, subject, template):
+def send_transfer_email(to_email,user, amount,recipient, subject, template):
     message = render_to_string(template, {
         'user' : user,
         'amount' : amount,
         'recipient': recipient,
     })
 
-    send_email = EmailMultiAlternatives(subject, '', to=[user.email])
+    send_email = EmailMultiAlternatives(subject, '', to=[to_email])
     send_email.attach_alternative(message, "text/html")
     send_email.send()
-
 
 
 
@@ -54,20 +53,15 @@ class TransferMoneyView(LoginRequiredMixin,View):
             messages.success(request, f'Successfully transferred {"{:,.2f}".format(float(amount))}$ to {recipient.username}')
 
             # sender email
-            send_transfer_email(request.user, amount,recipient, "Money transferred", "transactions/sender_email.html")
+            send_transfer_email(request.user.email,request.user, amount,recipient, "Money transferred", "transactions/sender_email.html")
             
             # recipient email
-            send_transfer_email(request.user, amount,recipient, "Money received", "transactions/recipient_email.html")
+            send_transfer_email(recipient.email,request.user, amount,recipient, "Money received", "transactions/recipient_email.html")
 
             return redirect('transfer_money')
         
 
         return render(request, self.template_name, {'form': form})
-
-
-
-
-
 
 
 
